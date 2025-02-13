@@ -5,13 +5,7 @@ async function generateImage(content, index) {
     const fileName = `csv_${Date.now()}_section${index}.png`;
     
     const browser = await puppeteer.launch({
-        args: [
-            '--no-sandbox',
-            '--disable-setuid-sandbox',
-            '--disable-dev-shm-usage',
-            '--single-process'
-        ],
-        executablePath: '/usr/bin/chromium-browser',
+        args: ['--no-sandbox'],
         headless: true
     });
     const page = await browser.newPage();
