@@ -1,9 +1,8 @@
 const puppeteer = require('puppeteer');
-const path = require('path');
+const supabase = require('./supabase');
 
 async function generateImage(content, index) {
-    const imageName = `csv_${Date.now()}_section${index}.png`;
-    const imagePath = path.join(__dirname, 'public/images', imageName);
+    const fileName = `csv_${Date.now()}_section${index}.png`;
     
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
@@ -17,27 +16,42 @@ async function generateImage(content, index) {
         </html>
     `);
     
-    await page.screenshot({ path: imagePath, fullPage: true });
+    // Capturar screenshot como Buffer
+    const screenshot = await page.screenshot({ fullPage: true });
     await browser.close();
     
-    return imageName;
+    // Subir a Supabase
+    const { data, error } = await supabase.storage
+        .from('csv-images')
+        .upload(fileName, screenshot, {
+            contentType: 'image/png'
+        });
+        
+    if (error) throw error;
+    
+    // Obtener URL pública
+    const { data: { publicUrl } } = supabase.storage
+        .from('csv-images')
+        .getPublicUrl(fileName);
+        
+    return publicUrl;
 }
 
+// El resto del código sigue igual
 async function captureCSVAsImage(csvData) {
-    const ROWS_PER_SECTION = 50;  // Ajustable según necesidad
+    const ROWS_PER_SECTION = 50;
     const rows = csvData.split('\n');
     const headers = rows[0];
     const images = [];
     
-    // Dividir en secciones
     for (let i = 1; i < rows.length; i += ROWS_PER_SECTION) {
         const sectionRows = [headers, ...rows.slice(i, i + ROWS_PER_SECTION)];
         const sectionContent = sectionRows.join('\n');
-        const imageName = await generateImage(sectionContent, Math.floor(i/ROWS_PER_SECTION));
-        images.push(imageName);
+        const imageUrl = await generateImage(sectionContent, Math.floor(i/ROWS_PER_SECTION));
+        images.push(imageUrl);
     }
     
-    return images;  // Devuelve array de nombres de imágenes
+    return images;
 }
 
 module.exports = { captureCSVAsImage };
