@@ -7,8 +7,11 @@ async function generateImage(content, index) {
     const browser = await puppeteer.launch({
         args: [
             '--no-sandbox',
-            '--disable-setuid-sandbox'
+            '--disable-setuid-sandbox',
+            '--disable-dev-shm-usage',
+            '--single-process'
         ],
+        executablePath: '/usr/bin/chromium-browser',
         headless: true
     });
     const page = await browser.newPage();
