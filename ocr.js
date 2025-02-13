@@ -4,7 +4,13 @@ const supabase = require('./supabase');
 async function generateImage(content, index) {
     const fileName = `csv_${Date.now()}_section${index}.png`;
     
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: [
+            '--no-sandbox',
+            '--disable-setuid-sandbox'
+        ],
+        headless: true
+    });
     const page = await browser.newPage();
     await page.setViewport({ width: 1200, height: 800 });
     
