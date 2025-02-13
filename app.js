@@ -3,9 +3,14 @@ const { parse } = require('csv-parse');
 const multer = require('multer');
 const upload = multer();
 const app = express();
-const port = 3001;  // Usamos 3001 para no conflictuar con el otro proyecto
+const port = process.env.PORT || 3001;  // Cambiar esta línea
 const path = require('path');
 const { captureCSVAsImage } = require('./ocr');
+
+// Iniciar servidor
+app.listen(port, () => {
+    console.log(`Servidor corriendo en puerto ${port}`);
+});
 
 // Middleware para procesar JSON
 app.use(express.json());
@@ -42,9 +47,4 @@ app.post('/process-csv', upload.single('file'), async (req, res) => {
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
-});
-
-// Iniciar servidor
-app.listen(port, () => {
-  console.log(`Servidor corriendo en http://localhost:${port}`);
 });
